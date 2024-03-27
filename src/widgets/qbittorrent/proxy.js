@@ -2,13 +2,20 @@ import { formatApiCall } from "utils/proxy/api-helpers";
 import { httpProxy } from "utils/proxy/http";
 import getServiceWidget from "utils/config/service-helpers";
 import createLogger from "utils/logger";
+import fs from "fs";
+
 
 const logger = createLogger("qbittorrentProxyHandler");
+
+function readKeyFile (path) {
+  return fs.readFileSync(path,{ encoding: 'utf8' }).replace(/\n$|\r$/g, "");
+}
 
 async function login(widget) {
   logger.debug("qBittorrent is rejecting the request, logging in.");
   const loginUrl = new URL(`${widget.url}/api/v2/auth/login`).toString();
-  const loginBody = `username=${encodeURIComponent(widget.username)}&password=${encodeURIComponent(widget.password)}`;
+  const password = widget.passwordFile ? readKeyFile(widget.passwordFile) : widget.password
+  const loginBody = `username=${encodeURIComponent(widget.username)}&password=${encodeURIComponent(password)}`;
   const loginParams = {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
